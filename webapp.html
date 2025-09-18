@@ -1,5 +1,4 @@
-
-.
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -21,7 +20,7 @@
             height: 100%;
             object-fit: cover;
         }
-                @keyframes scan {
+        @keyframes scan {
             0% { transform: translateY(-100%); }
             100% { transform: translateY(100%); }
         }
@@ -32,6 +31,13 @@
             height: 7px;
             background: linear-gradient(90deg, transparent, #34d399, transparent);
             animation: scan 3s linear infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .pulse-text {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
         ::-webkit-scrollbar {
             display: none;
@@ -44,9 +50,12 @@
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
 
-   
-    <main class="flex-grow overflow-y-auto pb-20">
-       
+    <div id="loading-screen" class="fixed inset-0 bg-indigo-600 flex flex-col items-center justify-center z-50">
+        <i class="fas fa-school text-white text-5xl mb-4"></i>
+        <h1 class="text-white text-2xl font-bold pulse-text">Smart Attend is starting...</h1>
+    </div>
+
+    <main class="flex-grow overflow-y-auto pb-20 hidden">
         <div id="home-screen" class="p-6">
             <div class="flex justify-between items-center mb-6">
                 <div>
@@ -73,11 +82,15 @@
             <div class="space-y-4">
                  <button onclick="app.navigate('attendance-screen')" class="w-full bg-indigo-600 text-white p-4 rounded-lg shadow-md flex items-center justify-center text-lg hover:bg-indigo-700 transition-colors">
                     <i class="fas fa-camera mr-3"></i> 
-                    Attendance
+                    Take Attendance
                 </button>
                 <button onclick="app.navigate('enroll-screen')" class="w-full bg-green-500 text-white p-4 rounded-lg shadow-md flex items-center justify-center text-lg hover:bg-green-600 transition-colors">
                     <i class="fas fa-user-plus mr-3"></i> 
-                    Enrollment
+                    Enroll Student
+                </button>
+                <button onclick="app.navigate('students-screen')" class="w-full bg-blue-500 text-white p-4 rounded-lg shadow-md flex items-center justify-center text-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-users mr-3"></i>
+                    View Students
                 </button>
                 <button onclick="app.navigate('records-screen')" class="w-full bg-white text-gray-700 p-4 rounded-lg shadow-sm flex items-center justify-center text-lg border border-gray-200 hover:bg-gray-50 transition-colors">
                     <i class="fas fa-list-alt mr-3"></i>
@@ -102,7 +115,7 @@
                     <label for="roll-number" class="block text-sm font-medium text-gray-700">Roll Number</label>
                     <input type="text" id="roll-number" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
-                <button id="enroll-button" class="w-full bg-green-500 text-white p-3 rounded-lg font-semibold hover:bg-green-600 transition-colors disabled:bg-gray-400">
+                <button id="enroll-button" class="w-full bg-green-500 text-white p-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
                     ENROLL
                 </button>
             </div>
@@ -118,7 +131,7 @@
                     </div>
                     <p id="attendance-cam-placeholder" class="text-white">Starting Camera...</p>
                 </div>
-                <button id="scan-button" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-gray-400">
+                <button id="scan-button" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
                     <i class="fas fa-qrcode mr-2"></i> 
                     MARK ATTENDANCE
                 </button>
@@ -129,6 +142,12 @@
             </div>
         </div>
 
+        <div id="students-screen" class="p-6 hidden">
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">Enrolled Students</h1>
+            <div id="students-list" class="space-y-3">
+                </div>
+        </div>
+        
         <div id="records-screen" class="p-6 hidden">
             <h1 class="text-2xl font-bold text-gray-800 mb-4">Attendance Records</h1>
             <button id="clear-records-btn" class="w-full bg-red-500 text-white p-3 rounded-lg font-semibold hover:bg-red-600 transition-colors mb-4 flex items-center justify-center">
@@ -140,7 +159,7 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around shadow-inner">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around shadow-inner hidden">
         <button onclick="app.navigate('home-screen')" class="nav-btn flex-1 p-3 text-center text-indigo-600">
             <i class="fas fa-home text-xl"></i>
             <span class="text-xs block">Home</span>
@@ -148,6 +167,10 @@
         <button onclick="app.navigate('enroll-screen')" class="nav-btn flex-1 p-3 text-center text-gray-500">
             <i class="fas fa-user-plus text-xl"></i>
             <span class="text-xs block">Enroll</span>
+        </button>
+        <button onclick="app.navigate('students-screen')" class="nav-btn flex-1 p-3 text-center text-gray-500">
+            <i class="fas fa-users text-xl"></i>
+            <span class="text-xs block">Students</span>
         </button>
         <button onclick="app.navigate('attendance-screen')" class="nav-btn flex-1 p-3 text-center text-gray-500">
             <i class="fas fa-camera text-xl"></i>
@@ -172,10 +195,20 @@ const app = {
     videoStream: null,
 
     init() {
-        this.loadData();
-        this.updateDashboard();
-        this.attachEventListeners();
-        this.navigate('home-screen'); 
+        const loadingScreen = document.getElementById('loading-screen');
+        const mainContent = document.querySelector('main');
+        const navBar = document.querySelector('nav');
+
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            mainContent.classList.remove('hidden');
+            navBar.classList.remove('hidden');
+            
+            this.loadData();
+            this.updateDashboard();
+            this.attachEventListeners();
+            this.navigate('home-screen'); 
+        }, 3000);
     },
 
     loadData() {
@@ -203,6 +236,7 @@ const app = {
 
         if (pageId === 'home-screen') this.updateDashboard();
         if (pageId === 'records-screen') this.renderRecords();
+        if (pageId === 'students-screen') this.renderStudents();
         if (pageId === 'enroll-screen' || pageId === 'attendance-screen') {
             this.startCamera(pageId === 'enroll-screen' ? 'enroll-video' : 'attendance-video');
         }
@@ -303,12 +337,11 @@ const app = {
 
       
         setTimeout(() => {
-            const presentStudents = this.students.filter(() => Math.random() > 0.3); // ~70% attendance
+            const presentStudents = this.students.filter(() => Math.random() > 0.3);
             const today = new Date().toLocaleDateString();
 
             let todayRecord = this.attendanceRecords.find(r => r.date === today);
             if (todayRecord) {
-
                 todayRecord.present = [...new Set([...todayRecord.present, ...presentStudents.map(s => s.id)])];
             } else {
                 todayRecord = { date: today, present: presentStudents.map(s => s.id) };
@@ -336,15 +369,65 @@ const app = {
             this.updateDashboard();
         }, 3000); 
     },
-        clearRecords() {
-            const isConfirmed = confirm('Are you sure that you want to delete all the existing records? THIS ACTION CANNOT BE UNDONE!!');
-            if (isConfirmed) {
-                this.attendanceRecords = [];
-                this.saveData();
-                this.renderRecords();
-                this.showToast('ALL ATTENDANCE RECORDS HAVE BEEN DELETED');
-            }
-        },
+    clearRecords() {
+        if (confirm('Are you sure you want to delete all attendance records? This action cannot be undone.')) {
+            this.attendanceRecords = [];
+            this.saveData();
+            this.renderRecords();
+            this.updateDashboard();
+            this.showToast('All attendance records have been deleted.');
+        }
+    },
+
+    // START: MODIFIED renderStudents function
+    renderStudents() {
+        const listDiv = document.getElementById('students-list');
+        listDiv.innerHTML = '';
+
+        if (this.students.length === 0) {
+            listDiv.innerHTML = '<p class="text-gray-500 text-center mt-4">No students have been enrolled yet.</p>';
+            return;
+        }
+
+        // Create a sorted copy of the students array by name
+        const sortedStudents = [...this.students].sort((a, b) => a.name.localeCompare(b.name));
+
+        // Loop through the new sorted array to display students
+        sortedStudents.forEach(student => {
+            const studentHTML = `
+                <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-gray-800">${student.name}</p>
+                        <p class="text-sm text-gray-500">Roll No: ${student.roll}</p>
+                    </div>
+                    <button data-id="${student.id}" class="delete-student-btn text-red-500 hover:text-red-700 transition-colors">
+                        <i class="fas fa-trash-alt fa-lg"></i>
+                    </button>
+                </div>
+            `;
+            listDiv.innerHTML += studentHTML;
+        });
+    },
+    // END: MODIFIED renderStudents function
+
+    deleteStudent(studentId) {
+        const studentToDelete = this.students.find(s => s.id === studentId);
+        if (!studentToDelete) return;
+
+        if (confirm(`Are you sure you want to delete ${studentToDelete.name}? All their attendance records will also be removed.`)) {
+            this.students = this.students.filter(s => s.id !== studentId);
+
+            this.attendanceRecords.forEach(record => {
+                record.present = record.present.filter(id => id !== studentId);
+            });
+
+            this.saveData();
+            this.renderStudents();
+            this.updateDashboard();
+            this.showToast(`${studentToDelete.name} has been deleted.`);
+        }
+    },
+
     renderRecords() {
         const listDiv = document.getElementById('records-list');
         listDiv.innerHTML = '';
@@ -364,7 +447,7 @@ const app = {
                         <p class="font-bold text-lg text-gray-800">${record.date}</p>
                         <div class="flex space-x-4">
                             <span class="text-green-600 font-semibold">Present: ${presentCount}</span>
-                            <span class="text-red-600 font-semibold">Absent: ${absentCount}</span>
+                            <span class="text-red-600 font-semibold">Absent: ${absentCount > 0 ? absentCount : 0}</span>
                         </div>
                     </div>
                 </div>
@@ -376,7 +459,15 @@ const app = {
     attachEventListeners() {
         document.getElementById('enroll-button').addEventListener('click', () => this.enrollStudent());
         document.getElementById('scan-button').addEventListener('click', () => this.takeAttendance());
-        document.getElementById(clear-records-button).addEventListener('click', () => this.clearRecords());
+        document.getElementById('clear-records-btn').addEventListener('click', () => this.clearRecords());
+
+        document.getElementById('students-list').addEventListener('click', (event) => {
+            const deleteButton = event.target.closest('.delete-student-btn');
+            if (deleteButton) {
+                const studentId = parseInt(deleteButton.dataset.id);
+                this.deleteStudent(studentId);
+            }
+        });
     },
 };
 
